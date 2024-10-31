@@ -1,0 +1,4 @@
+name = NVD3 Visualisations
+description = Generate business quality charts based on the famous gallery of NVD3 framework.
+core = 7.x
+configure = admin/config/content/nvd3_visualisations

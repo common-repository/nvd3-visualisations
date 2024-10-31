@@ -1,0 +1,189 @@
+<?php
+
+/**
+ * @file
+ * Generates business quality charts based on the famous full gallery of NVD3 framework.
+ *
+ */
+
+/**
+ * Starts up for whole package of NVD3 Visualisations.
+ *
+ * This whole body is compatible with WordPress too.
+ */
+require 'nvd3.php';
+
+/**
+ * Implements hook_help().
+ *
+ * Help system for the configuration of module to the user.
+ */
+function nvd3_visualisations_help($path, $arg) {
+
+  $msg = nvd3_visualisations_achapter("<b>NVD3 Visualisations</b> " . t("is a full set of visually interactive charts that can be controlled by simple options."))
+  . nvd3_visualisations_achapter(t("You can start to create any example chart into your blog and study it more before you decide if that suits for your visual presentation's needs at hand."))
+  . nvd3_visualisations_achapter(t("This product lets you generate as many copies of different charts on the one page as you wish and scale their size just the way you like case by case."))
+  . nvd3_visualisations_achapter(t("All the example's input data sets are stored in the same format on data folder so that you can easily copy them and start to use them as a template for your own data's needs."));
+
+  if ($path == "admin/help#nvd3_visualisations") {
+    return $msg;
+  }
+}
+
+/**
+ * Get text block in html for help system.
+ */
+function nvd3_visualisations_achapter($t) {
+  return '<p>' . $t . '</p>';
+}
+
+/**
+ * Implements hook_block_info().
+ */
+function nvd3_visualisations_block_info() {
+  $blocks['nvd3_visualisations'] = array(
+    // The name that will appear in the block list.
+    'info' => t('NVD3 Visualisations'),
+    // Default setting.
+    'cache' => DRUPAL_CACHE_PER_ROLE,
+  );
+  return $blocks;
+}
+
+/**
+ * Implements hook_init().
+ *
+ * When module inits it is including all external JS & CSS files at first.
+ * Next, it creates the gallery of charts on normal page at very first bootup time.
+ */
+function nvd3_visualisations_init() {
+
+  // Include files for NVD3.
+  $extfiles = nvd3_visualisations_write_headers('drupal');
+  foreach ($extfiles as $afile) {
+    if (strpos($afile, '.js')) {
+      drupal_add_js($afile, array('type' => 'external'));
+    }
+    elseif (strpos($afile, '.css')) {
+      drupal_add_css($afile, array('type' => 'external'));
+    }
+  }
+
+  /* Links to cloud for better external libs, @todo: chart picker by jQuery UI.
+  drupal_add_js("http://code.jquery.com/jquery-1.11.2.js", array('type' => 'external'));
+  drupal_add_js("http://code.jquery.com/ui/1.11.4/jquery-ui.js", array('type' => 'external'));
+   */
+
+  $title = "Main Gallery of Charts";
+  $row = db_query('SELECT nid FROM {node} WHERE title = :mytitle', array(':mytitle' => $title))->fetchField();
+  $title = "Picker for All Charts";
+
+  // Build new gallery of charts.
+  if (!isset($row['nid'])) {
+    nvd3_visualisations_new_gallery($title, nvd3_visualisations_charts_container(), $title, "page");
+  }
+}
+
+/**
+ * Building charts gallery.
+ */
+function nvd3_visualisations_charts_container() {
+
+  // Generates html container in which charts are built.
+  return '<span id="mycharts"></span><script> nvd3Demos("mycharts", 12, false); </script>';
+  /*
+  @todo: new gallery in jQuery UI format
+  return '<span id="mycharts"></span><script> nvd3Charter("mycharts"); </script>';
+   */
+}
+
+/**
+ * Creates new gallery of charts and makes its examples cloneable.
+ *
+ * This page contains all predefined charts examples from which user can generate own charts
+ * with the real separate data set.
+ */
+function nvd3_visualisations_new_gallery($title, $body, $summary, $pagetype) {
+
+  // We create a new node object.
+  $node = new stdClass();
+
+  // Type of new node: "page"/"article".
+  $node->type = $pagetype;
+  $node->title = $title;
+  // Language neutral new node.
+  $node->language = LANGUAGE_NONE;
+  // Alias: $node->path = array('alias' => 'xxx/xxx/x'); .
+  // Gallery is NOT public & published by default.
+  $node->status = 0;
+  // Promoted to front page of links automatically.
+  $node->promote = 1;
+  // Sticky.
+  $node->sticky = 1;
+  // Writers's ID.
+  // Def: $node->uid = $user->uid; .
+  // Set some default values.
+  node_object_prepare($node);
+
+  // Let's add standard fields of new node: body, summary, and its format.
+  $node->body[$node->language][0]['value'] = $body;
+  $node->body[$node->language][0]['summary'] = $summary;
+  $node->body[$node->language][0]['format'] = 'full_html';
+
+  // Prepare node for a submit.
+  $node = node_submit($node);
+  // After this call we'll get a nid.
+  node_save($node);
+}
+
+/**
+ * Implements hook_menu().
+ *
+ * @todo: build here UI of all options of charts from its JavaScript API.
+ *
+ */
+function nvd3_visualisations_menu() {
+  $items = array();
+
+  $items['admin/config/content/nvd3_visualisations'] = array(
+    'title' => 'NVD3 Visualisations',
+    'description' => 'Configuration for NVD3 Visualisations module',
+    'page callback' => 'drupal_get_form',
+    'page arguments' => array('nvd3_visualisations_form'),
+    'access arguments' => array('access administration pages'),
+    'type' => MENU_NORMAL_ITEM,
+  );
+
+  return $items;
+}
+
+/**
+ * Page callback: NVD3 Visualisations settings.
+ *
+ * @see nvd3_visualisations_menu()
+ */
+function nvd3_visualisations_form($form, &$form_state) {
+  $form['nvd3_visualisations_max'] = array(
+    '#type' => 'textfield',
+    '#title' => t('NVD3 Visualisations Settings'),
+    '#default_value' => variable_get('nvd3_visualisations_max', 5),
+    '#size' => 2,
+    '#maxlength' => 2,
+    '#description' => t('Number.'),
+    '#required' => TRUE,
+  );
+  return system_settings_form($form);
+}
+
+/**
+ * Implements validation from the Form API.
+ */
+function nvd3_visualisations_form_validate($form, &$form_state) {
+  $max_num = $form_state['values']['nvd3_visualisations_max'];
+  if (!is_numeric($max_num)) {
+    form_set_error('nvd3_visualisations_max', t('You must enter a number for configuration.'));
+  }
+  elseif ($max_num <= 0) {
+    form_set_error('current_posts_max', t('Number must be positive.'));
+  }
+}

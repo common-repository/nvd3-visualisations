@@ -1,0 +1,41 @@
+<!-- Your charts on post / page of WordPress
+
+     Simply, do these steps:
+
+         1. Create new post / page normally on WP.
+         2. Copy all lines below inside it (using HTML writing mode). 
+         3. Save it, preview & enjoy new pretty charts on the blog 
+! -->
+
+<h3>Coloring Chart's Data</h3>
+
+[loadNVD3]
+<p>
+
+Own Named Colors
+[jsChart type="Pie" options="{ colors:'red,green,blue,#FFFF00' }" backgroundcolor='darkgray']
+ 
+</p><p>
+
+Own Colors from Colorbrewer's Palettes
+[jsChart type="Pie" options="{ colorbrewer:{palette:'Blues'},  showLegend: true, shadows:'black' }" backgroundcolor='darkgray']
+</p><p>Own Smooth Gradient Colors[jsChart type="Pie" options="{ colors:{startbar:'red', endbar:'lime'} }" backgroundcolor='darkgray']
+Smooth Gradient Colors by Data Values
+
+[jsChart type="discretebar" options="{ colors:{values:true, startbar:'red', endbar:'lime'} }" backgroundcolor='darkgray']
+
+</p><p>
+
+Chart with Background's Picture for Infographics
+
+[jsChart type="stackedarea" options="{ xtime:true,   backgroundimage: 'wp-content/plugins/nvd3-visualisations/backgrounds/continents1.jpg', showLegend: false }" backgroundcolor='darkgray' height=250 width=300]
+
+Note: your area of picture is limited by svg's height & width always (250 x 300, in this case).
+
+</p><p>
+
+Chart with Random Background's Pictures
+
+[jsChart type="stackedarea" options="{ xtime:true,   backgroundimage: 'wp-content/plugins/nvd3-visualisations/backgrounds/continents1.jpg, wp-content/plugins/nvd3-visualisations/backgrounds/continents11.jpg', showLegend: false }" backgroundcolor='darkgray' height=250 width=300]
+
+Note: a random background image is picked out automatically.
